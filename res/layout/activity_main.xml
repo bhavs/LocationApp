@@ -9,8 +9,21 @@
     tools:context=".MainActivity" >
 
     <TextView
+        android:id="@+id/ph_num_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:layout_marginTop="45dp"
+        android:text="@string/enter_phone_number" />
+
+    <EditText
+        android:id="@+id/ph_num_edittext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/ph_num_textview"
+        android:layout_marginLeft="22dp"
+        android:layout_toRightOf="@+id/ph_num_textview"
+        android:ems="10"
+        android:inputType="phone" >
+    </EditText>
 
 </RelativeLayout>

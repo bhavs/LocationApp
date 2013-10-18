@@ -4,5 +4,6 @@
     <string name="app_name">LocationApp</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+   <string name="enter_phone_number">Enter Phone Number!</string> 
 
 </resources>
