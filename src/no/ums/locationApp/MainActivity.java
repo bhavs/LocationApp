@@ -14,7 +14,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
 public class MainActivity extends Activity {
-	
+
 	public static String phoneNumber;
 
 	@Override
@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
 			public boolean onEditorAction(TextView v, int actionId,
 					KeyEvent event) {
 				if (actionId == EditorInfo.IME_ACTION_DONE) {
-					phoneNumber=editText.getText().toString();
+					phoneNumber = editText.getText().toString();
 					Log.d("UMS:BPH", "reading information "
 							+ editText.getText().toString());
 					editText.clearFocus();
@@ -41,6 +41,7 @@ public class MainActivity extends Activity {
 		Intent locationIntent = new Intent(this.getApplicationContext(),
 				LocationService.class);
 		startService(locationIntent);
+
 	}
 
 	@Override
