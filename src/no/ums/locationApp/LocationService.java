@@ -20,12 +20,17 @@ import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
 public class LocationService extends Service {
-	BackEndConnection fb;
+	private BackEndConnection fb;
 	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Log.d("UMS:BPH"," calling onCreate() command");
+		fb = new BackEndConnection();
+	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		fb = new BackEndConnection();
 		Log.d("UMS:BPH", "starting service");
 		getLocationInformation();
 		return START_STICKY;
@@ -37,8 +42,9 @@ public class LocationService extends Service {
 	}
 
 	private void getLocationInformation() {
-		long minDistance = 0; // minimum time interval between
+		long minDistance = 5; // minimum time interval between
 		// notifications
+		long minTime = 1000;
 		LocationManager locationManager = (LocationManager) this
 				.getSystemService(Context.LOCATION_SERVICE);
 		LocationListener locationListener = new LocationListener() {
@@ -51,29 +57,16 @@ public class LocationService extends Service {
 				mobileInfo.setLatitude(location.getLatitude());
 				mobileInfo.setLongitude(location.getLongitude());
 				mobileInfo.setTime(location.getTime());
-				Log.d("UMS:BPH", "getLocationInformation " + mobileInfo.toString());
 				fb.writeToFirebase(mobileInfo);
 			}
 
-			// FIXME : this method need not be called so many times, the values
-			// of the phone number IMSI, SIM country ISO and SIM operator NAME
-			// will be pretty standard
-			// FIXME : How to store GSM ad CDMA data without differentiating
-			// between the way the data is being stored
-			// FIXME hardcoded phone number
 			private void getMobileInfo(MobileInfo d) {
 				TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 				String IMEINum = manager.getDeviceId();
-				String phoneNumber = MainActivity.phoneNumber;
 				int type = manager.getPhoneType();
-				System.out.println(" Phone type is " + type);
 				if (type == TelephonyManager.PHONE_TYPE_GSM) {
 					GsmCellLocation gsmCell = (GsmCellLocation) manager
 							.getCellLocation();
-					Log.d("UMS:BPH",
-							" GSM Cell Location  cell ID: " + gsmCell.getCid()
-									+ " location access code "
-									+ gsmCell.getLac());
 					GSMCellInformation temp = new GSMCellInformation();
 					temp.setType(PhoneType.GSM);
 					temp.setCellID(gsmCell.getCid());
@@ -82,13 +75,6 @@ public class LocationService extends Service {
 				} else if (type == TelephonyManager.PHONE_TYPE_CDMA) {
 					CdmaCellLocation cdmaLoc = (CdmaCellLocation) manager
 							.getCellLocation();
-					Log.d("UMS:BPH",
-							"CDMA cell location " + cdmaLoc.getBaseStationId()
-									+ " cdma lat "
-									+ cdmaLoc.getBaseStationLatitude()
-									+ " cdma  long "
-									+ cdmaLoc.getBaseStationLongitude()
-									+ " network ID" + cdmaLoc.getNetworkId());
 					CDMACellInformation temp = new CDMACellInformation();
 					temp.setType(PhoneType.CDMA);
 					temp.setBaseStationID(cdmaLoc.getBaseStationId());
@@ -97,11 +83,7 @@ public class LocationService extends Service {
 					temp.setNetworkID(cdmaLoc.getNetworkId());
 					d.setCellInfo(temp);
 				}
-				Log.d("UMS:BPH", " SubscriberID : " + phoneNumber);
-				Log.d("UMS:BPH",
-						"Voice mail number " + manager.getVoiceMailNumber()
-								+ " ");
-				d.setPhoneNumber(phoneNumber);
+				d.setPhoneNumber(MainActivity.getPhoneNumber());
 				d.setImeiNum(IMEINum);
 				d.setSimSerialNum(manager.getSimSerialNumber());
 				d.setSimCountryIso(manager.getSimCountryIso());
@@ -122,7 +104,7 @@ public class LocationService extends Service {
 		// Register the listener with the Location Manager to receive location
 		// updates
 		locationManager.requestLocationUpdates(
-				LocationManager.NETWORK_PROVIDER, 0, minDistance,
+				LocationManager.NETWORK_PROVIDER, minTime, minDistance,
 				locationListener);
 
 	}

@@ -22,7 +22,7 @@ public class BackEndConnection {
 	Map<String, MobileInfo> map;
 	Firebase fb;
 	boolean flag = false;
-	private List<String> cellIDInformation; 
+	private List<String> cellIDInformation;
 
 	public BackEndConnection() {
 		fb = new Firebase(URL);
@@ -30,12 +30,12 @@ public class BackEndConnection {
 	}
 
 	public void writeToFirebase(MobileInfo d) {
-		Log.d("UMS:BPH", "Writing to firebase value ");
+		// Log.d("UMS:BPH", "Writing to firebase value ");
 		if (d.getPhoneNumber() != null) {
 			if (!flag) {
 				fb.child(d.getPhoneNumber()).setValue(d);
 				addCellIDData(d);
-				flag=true;
+				flag = true;
 			} else {
 				Firebase temp;
 				temp = fb.child(d.getPhoneNumber() + "/imeiNum");
@@ -83,53 +83,81 @@ public class BackEndConnection {
 				}
 			}
 		}
-		
+
 	}
 
-	private void addCellIDData(MobileInfo d) {
-		if(d.getCellInfo().getType()==PhoneType.GSM){
+	private void addCellIDData(final MobileInfo d) {
+		if (d.getCellInfo().getType() == PhoneType.GSM) {
 			cellIDInformation = new ArrayList<String>();
 			GSMCellInformation gsm = (GSMCellInformation) d.getCellInfo();
-			String cellID = Integer.toString(gsm.getCellID());
-			Log.d("BPH:UMS", "cell id retrieved from mobile data is "+cellID);
-			fb.child("CELLID").addChildEventListener( new ChildEventListener() {
-				
+			final String oldCellID = Integer.toString(gsm.getCellID());
+			final List<String> cellInfo = new ArrayList<String>();
+			Log.d("BPH:UMS", "cell id retrieved from mobile data is "
+					+ oldCellID);
+			fb.child("CELLID").addChildEventListener(new ChildEventListener() {
+
 				@Override
 				public void onChildRemoved(DataSnapshot arg0) {
 					// TODO Auto-generated method stub
-					
+
 				}
-				
+
 				@Override
 				public void onChildMoved(DataSnapshot arg0, String arg1) {
 					// TODO Auto-generated method stub
-					
+
 				}
-				
+
 				@Override
 				public void onChildChanged(DataSnapshot arg0, String arg1) {
 					// TODO Auto-generated method stub
-					
+
 				}
-				
+
 				@Override
 				public void onChildAdded(DataSnapshot arg0, String arg1) {
-					Log.d("BPH:UMS", " Retrieved value from CellID "+arg0.getName());
-					cellIDInformation.add(arg0.getName());
+					cellInfo.add(arg0.getName());
+					Log.d("BPH:UMS",
+							" Retrieved value from CellID " + arg0.getName());
+					// cellIDInformation.add(arg0.getName());
+					if (arg0.getName().equals(oldCellID)) {
+						ArrayList<String> temp = (ArrayList<String>) arg0
+								.getValue();
+						Log.d("BPH:UMS",
+								"Value fetched from datasnapshot is " + temp
+										+ "  previous is " + arg1
+										+ " mobile phone number is "
+										+ d.getPhoneNumber());
+						if (!temp.contains(d.getPhoneNumber())) {
+							temp.add(d.getPhoneNumber());
+						}
+						// fb.child("CELLID").child(cellID).setValue(tempNumbers);
+						Log.d("BPH:UMS", "value at cellID " + oldCellID
+								+ " is value " + arg0.getValue() + " name  "
+								+ arg0.getName());
+						Firebase tempRef = arg0.getRef();
+						Log.d("BPH:UMS", "FIREBASE reference is " + tempRef);
+						for (String s : temp) {
+							Log.d("BPH:UMS", "Phone numbers in array list " + s);
+						}
+						fb.child("CELLID").child(oldCellID).setValue(temp);
+					}
 				}
-				
+
 				@Override
 				public void onCancelled() {
 					// TODO Auto-generated method stub
-					
+
 				}
 			});
-			if(cellIDInformation.contains(cellID)){
-			} else {
-				fb.child("CELLID").child(cellID).setValue(d.getPhoneNumber());
+
+			if (cellInfo.size()>0 && !cellInfo.contains(oldCellID)) {
+				Log.d("BPH:UMS", "Is it coming here already ?");
+				List<String> temp = new ArrayList<String>();
+				temp.add(d.getPhoneNumber());
+				fb.child("CELLID").child(oldCellID).setValue(temp);
 			}
 
 		}
 	}
-
 }
